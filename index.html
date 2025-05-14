@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hub - Made by Dark Ninjas</title>
+    <style>
+        :root {
+            --primary-color: #2ecc71;
+            --secondary-color: #3498db;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--dark-color);
+            color: var(--light-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .game-card:hover {
+            transform: scale(1.05);
+        }
+
+        #tic-tac-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            font-size: 40px;
+            color: var(--light-color);
+            cursor: pointer;
+        }
+
+        .color-box {
+            width: 100px;
+            height: 100px;
+            margin: 10px auto;
+            border-radius: 10px;
+            transition: transform 0.3s;
+        }
+
+        #click-speed-test {
+            text-align: center;
+            padding: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Game Hub</h1>
+            <p>Enjoy these interactive games and features!</p>
+        </div>
+
+        <div class="game-container">
+            <!-- Tic Tac Toe vs Computer -->
+            <div class="game-card">
+                <h2>Tic Tac Toe vs AI</h2>
+                <div id="tic-tac-board">
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                    <button class="cell" onclick="humanMove(this)"></button>
+                </div>
+                <button onclick="resetGame()">New Game</button>
+            </div>
+
+            <!-- Color Flipper -->
+            <div class="game-card">
+                <h2>Color Flipper</h2>
+                <div id="color-box" class="color-box"></div>
+                <button onclick="flipColor()">Generate Color</button>
+            </div>
+
+            <!-- Click Speed Test -->
+            <div class="game-card">
+                <h2>Click Speed Test</h2>
+                <div id="click-speed-test">
+                    <p>Time: <span id="timer">0</span>s</p>
+                    <p>Clicks: <span id="clicks">0</span></p>
+                    <button id="click-btn" onclick="incrementClick()">Click Me!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tic Tac Toe Logic
+        let currentPlayer = 'X'; // Human is X, computer is O
+        let gameActive = true;
+
+        function humanMove(cell) {
+            if (cell.innerHTML !== '' || !gameActive || currentPlayer !== 'X') return;
+            
+            makeMove(cell, 'X');
+            
+            if (gameActive) {
+                setTimeout(computerMove, 500);
+            }
+        }
+
+        function computerMove() {
+            if (!gameActive) return;
+
+            const cells = Array.from(document.getElementsByClassName('cell'));
+            const emptyCells = cells.filter(cell => cell.innerHTML === '');
+            
+            if (emptyCells.length > 0) {
+                const bestMove = findWinningMove('O') || findWinningMove('X') || emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                makeMove(bestMove, 'O');
+            }
+        }
+
+        function makeMove(cell, player) {
+            cell.innerHTML = player;
+            cell.style.color = player === 'X' ? '#e74c3c' : '#2ecc71';
+            checkWinner();
+            currentPlayer = player === 'X' ? 'O' : 'X';
+        }
+
+        function findWinningMove(player) {
+            const cells = document.getElementsByClassName('cell');
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            for (let pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                const cellsInPattern = [cells[a], cells[b], cells[c]];
+                const cellValues = cellsInPattern.map(cell => cell.innerHTML);
+                
+                if (cellValues.filter(v => v === player).length === 2 && cellValues.includes('')) {
+                    return cellsInPattern[cellValues.indexOf('')];
+                }
+            }
+            return null;
+        }
+
+        function checkWinner() {
+            const cells = document.getElementsByClassName('cell');
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            for (let pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (cells[a].innerHTML && 
+                    cells[a].innerHTML === cells[b].innerHTML && 
+                    cells[a].innerHTML === cells[c].innerHTML) {
+                    gameActive = false;
+                    setTimeout(() => alert(`${cells[a].innerHTML === 'X' ? 'You win!' : 'Computer wins!'}`), 10);
+                    return;
+                }
+            }
+
+            if ([...cells].every(cell => cell.innerHTML !== '')) {
+                gameActive = false;
+                setTimeout(() => alert("It's a draw!"), 10);
+            }
+        }
+
+        function resetGame() {
+            const cells = document.getElementsByClassName('cell');
+            for (let cell of cells) {
+                cell.innerHTML = '';
+            }
+            gameActive = true;
+            currentPlayer = 'X';
+        }
+
+        // Color Flipper
+        function flipColor() {
+            const colorBox = document.getElementById('color-box');
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+            colorBox.style.backgroundColor = randomColor;
+        }
+
+        // Click Speed Test
+        let clickCount = 0;
+        let startTime = null;
+        let timerInterval = null;
+
+        function incrementClick() {
+            if (!startTime) {
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+            clickCount++;
+            document.getElementById('clicks').textContent = clickCount;
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timer').textContent = elapsed;
+            
+            if (elapsed >= 10) {
+                clearInterval(timerInterval);
+                alert(`Time's up! You clicked ${clickCount} times (${(clickCount/10).toFixed(1)} clicks/s)`);
+                resetClickTest();
+            }
+        }
+
+        function resetClickTest() {
+            clickCount = 0;
+            startTime = null;
+            document.getElementById('clicks').textContent = '0';
+            document.getElementById('timer').textContent = '0';
+        }
+    </script>
+</body>
+</html>
